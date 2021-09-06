@@ -37,11 +37,11 @@ protected class SSHCommandLauncher {
      * @throws Exception if cannot execute the command or if the command return an error
      */
     @Restricted(NoExternalUse)
-    protected static String executeCommand(@NotNull SSHConnectionConfiguration connectionConfiguration, @NotNull boolean ignoreError, @NotNull String command) throws Exception {
+    protected static String executeCommand(@NotNull SSHConnectionConfiguration connectionConfiguration, @NotNull boolean ignoreError, @NotNull String command, @NotNull int commandTimeout) throws Exception {
         Connection connection = null
         try {
             connection = SSHConnectionFactory.getSshConnection(connectionConfiguration)
-            String result = executeCommandWithConnection(connection, ignoreError, command)
+            String result = executeCommandWithConnection(connection, ignoreError, command, commandTimeout)
             connection.close()
             return result
         } catch(Exception e) {
@@ -64,7 +64,7 @@ protected class SSHCommandLauncher {
             connection = SSHConnectionFactory.getSshConnection(connectionConfiguration)
             for(String command : commands) {
                 try {
-                    LOGGER.log(Level.FINE, executeCommandWithConnection(connection, false, command))
+                    LOGGER.log(Level.FINE, executeCommandWithConnection(connection, false, command, 5000))
                 } catch(Exception e) {
                     final String message = String.format("Error when executing command %s on Mac Host %s", command, connectionConfiguration.host)
                     if(!ignoreError) {
@@ -90,14 +90,14 @@ protected class SSHCommandLauncher {
      * @return the output of the command as String
      * @throws Exception
      */
-    protected static String executeCommandWithConnection(@NotNull Connection connection, @NotNull boolean ignoreError, @NotNull String command) throws Exception {
+    protected static String executeCommandWithConnection(@NotNull Connection connection, @NotNull boolean ignoreError, @NotNull String command, int commandTimeout) throws Exception {
         Session session = null
         try {
             session = connection.openSession()
             LOGGER.log(Level.FINE, "Executing command {0}", command)
             session.execCommand(command)
-            session.waitForCondition(ChannelCondition.EXIT_STATUS | ChannelCondition.EXIT_SIGNAL, 5000)
-            LOGGER.log(Level.FINEST, "Exit SIGNAL : {0}", session.getExitSignal())
+            int cond = session.waitForCondition(ChannelCondition.EXIT_STATUS, commandTimeout)
+//            LOGGER.log(Level.FINEST, "Exit SIGNAL : {0}", session.getExitSignal())
             LOGGER.log(Level.FINEST,"Exit STATUS : {0}", null != session.getExitStatus() ? session.getExitStatus().intValue() : null)
             session.close()
             String out = convertInputStream(session.getStdout())

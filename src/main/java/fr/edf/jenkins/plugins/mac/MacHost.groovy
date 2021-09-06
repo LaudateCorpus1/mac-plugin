@@ -35,6 +35,8 @@ class MacHost implements Describable<MacHost> {
     Integer readTimeout
     Integer kexTimeout
     Integer agentConnectionTimeout
+    Integer userCreationTimeout
+    Integer userDeletionTimeout
     Integer maxTries
     Boolean disabled
     Boolean uploadKeychain = Boolean.FALSE
@@ -46,7 +48,7 @@ class MacHost implements Describable<MacHost> {
     transient Set<LabelAtom> labelSet
 
     @DataBoundConstructor
-    MacHost(String host, String credentialsId, Integer port, Integer maxUsers, Integer connectionTimeout, Integer readTimeout, Integer agentConnectionTimeout,
+    MacHost(String host, String credentialsId, Integer port, Integer maxUsers, Integer connectionTimeout, Integer readTimeout, Integer agentConnectionTimeout, Integer userCreationTimeout, Integer userDeletionTimout,
     Boolean disabled, Integer maxTries, String labelString, Boolean uploadKeychain, String fileCredentialsId, List<MacEnvVar> envVars, String key, String preLaunchCommands) {
         this.host = host
         this.credentialsId = credentialsId
@@ -56,6 +58,8 @@ class MacHost implements Describable<MacHost> {
         this.readTimeout = readTimeout
         this.kexTimeout = Integer.valueOf(0)
         this.agentConnectionTimeout = agentConnectionTimeout
+        this.userCreationTimeout = userCreationTimeout
+        this.userDeletionTimeout = userDeletionTimeout
         this.disabled = disabled
         this.maxTries = maxTries
         this.labelString = labelString
@@ -109,6 +113,16 @@ class MacHost implements Describable<MacHost> {
     @DataBoundSetter
     void setAgentConnectionTimeout(Integer agentConnectionTimeout) {
         this.agentConnectionTimeout = agentConnectionTimeout
+    }
+
+    @DataBoundSetter
+    void setUserCreationTimeout(Integer userCreationTimeout) {
+        this.userCreationTimeout = userCreationTimeout
+    }
+
+    @DataBoundSetter
+    void setUserDeletionTimeout(Integer userDeletionTimeout) {
+        this.userDeletionTimeout = userDeletionTimeout
     }
 
     @DataBoundSetter

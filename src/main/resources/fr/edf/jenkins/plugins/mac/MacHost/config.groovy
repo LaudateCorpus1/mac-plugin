@@ -52,6 +52,16 @@ f.advanced(title:Messages.Host_Details()) {
         f.number(clazz: 'required', default: 15, min: 15)
     }
 
+    f.advanced(title:Messages.Host_AdvancedProperties()) {
+        f.entry(title: _(Messages.Host_UserCreationTimeout()), field: 'userCreationTimeout') {
+            f.number(clazz: 'required', default: 5, min: 15)
+        }
+
+        f.entry(title: _(Messages.Host_UserDeletionTimeout()), field: 'userDeletionTimeout') {
+            f.number(clazz: 'required', default: 5, min: 15)
+        }
+    }
+
     f.block() {
         f.validateButton(
                 title: _(Messages.Host_TestConnection()),

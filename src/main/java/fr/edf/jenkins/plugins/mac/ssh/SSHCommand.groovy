@@ -28,6 +28,8 @@ class SSHCommand {
 
     static final Logger LOGGER = Logger.getLogger(SSHCommand.name)
 
+    static final int DEFAULT_COMMAND_TIMEOUT = 5000;
+
     /**
      * Check the connection to ssh with the given config and command whoami
      * @param config
@@ -35,7 +37,7 @@ class SSHCommand {
      */
     @Restricted(NoExternalUse)
     static String checkConnection(SSHGlobalConnectionConfiguration config) {
-        return SSHCommandLauncher.executeCommand(config, false,  Constants.WHOAMI)
+        return SSHCommandLauncher.executeCommand(config, false,  Constants.WHOAMI, DEFAULT_COMMAND_TIMEOUT)
     }
 
     /**
@@ -63,15 +65,16 @@ class SSHCommand {
     @Restricted(NoExternalUse)
     static MacUser createUserOnMac(MacHost macHost, MacUser user) throws SSHCommandException, Exception {
         try {
+            int createTimeout = macHost.userCreationTimeout ? macHost.userCreationTimeout.intValue() * 1000 : DEFAULT_COMMAND_TIMEOUT
             SSHGlobalConnectionConfiguration connectionConfig = new SSHGlobalConnectionConfiguration(credentialsId: macHost.credentialsId, port: macHost.port,
             context: Jenkins.get(), host: macHost.host, connectionTimeout: macHost.connectionTimeout,
             readTimeout: macHost.readTimeout, kexTimeout: macHost.kexTimeout, macHostKeyVerifier: macHost.macHostKeyVerifier)
-            LOGGER.log(Level.FINE, SSHCommandLauncher.executeCommand(connectionConfig, true, String.format(Constants.CREATE_USER, user.username, user.password.getPlainText())))
+            LOGGER.log(Level.FINE, SSHCommandLauncher.executeCommand(connectionConfig, true, String.format(Constants.CREATE_USER, user.username, user.password.getPlainText()), createTimeout))
             TimeUnit.SECONDS.sleep(5)
             if(!isUserExist(connectionConfig, user.username)) {
                 throw new Exception(String.format("The user %s wasn't created after verification", user.username))
             }
-            LOGGER.log(Level.FINE, SSHCommandLauncher.executeCommand(connectionConfig, true, String.format(Constants.CHANGE_RIGHTS_ON_USER, user.username)))
+            LOGGER.log(Level.FINE, SSHCommandLauncher.executeCommand(connectionConfig, true, String.format(Constants.CHANGE_RIGHTS_ON_USER, user.username), DEFAULT_COMMAND_TIMEOUT))
             LOGGER.log(Level.FINE, "The User {0} has been CREATED on Mac {1}", user.username, macHost.host)
             return user
         } catch(Exception e) {
@@ -90,10 +93,11 @@ class SSHCommand {
     @Restricted(NoExternalUse)
     static void deleteUserOnMac(String username, MacHost macHost) throws SSHCommandException, Exception {
         try {
+            int deleteTimeout = macHost.userDeletionTimeout ? macHost.userDeletionTimeout.intValue() * 1000 : DEFAULT_COMMAND_TIMEOUT
             SSHGlobalConnectionConfiguration connectionConfig = new SSHGlobalConnectionConfiguration(credentialsId: macHost.credentialsId, port: macHost.port,
             context: Jenkins.get(), host: macHost.host, connectionTimeout: macHost.connectionTimeout,
             readTimeout: macHost.readTimeout, kexTimeout: macHost.kexTimeout, macHostKeyVerifier: macHost.macHostKeyVerifier)
-            LOGGER.log(Level.FINE, SSHCommandLauncher.executeCommand(connectionConfig, true, String.format(Constants.DELETE_USER, username)))
+            LOGGER.log(Level.FINE, SSHCommandLauncher.executeCommand(connectionConfig, true, String.format(Constants.DELETE_USER, username), deleteTimeout))
             TimeUnit.SECONDS.sleep(5)
             if(isUserExist(connectionConfig, username)) {
                 throw new Exception(String.format("The user %s still exist after verification", username))
@@ -125,8 +129,8 @@ class SSHCommand {
         try {
             SSHUserConnectionConfiguration connectionConfig = new SSHUserConnectionConfiguration(username: user.username, password: user.password, host: macHost.host,
             port: macHost.port, connectionTimeout: macHost.connectionTimeout, readTimeout: macHost.readTimeout, kexTimeout: macHost.kexTimeout, macHostKeyVerifier: macHost.macHostKeyVerifier)
-            LOGGER.log(Level.FINE, SSHCommandLauncher.executeCommand(connectionConfig, false, String.format(Constants.GET_REMOTING_JAR, remotingUrl)))
-            LOGGER.log(Level.FINE, SSHCommandLauncher.executeCommand(connectionConfig, false, String.format(Constants.LAUNCH_JNLP, jenkinsUrl, user.username, slaveSecret)))
+            LOGGER.log(Level.FINE, SSHCommandLauncher.executeCommand(connectionConfig, false, String.format(Constants.GET_REMOTING_JAR, remotingUrl), DEFAULT_COMMAND_TIMEOUT))
+            LOGGER.log(Level.FINE, SSHCommandLauncher.executeCommand(connectionConfig, false, String.format(Constants.LAUNCH_JNLP, jenkinsUrl, user.username, slaveSecret), DEFAULT_COMMAND_TIMEOUT))
             return true
         } catch(Exception e) {
             final String message = String.format(SSHCommandException.JNLP_CONNECTION_ERROR_MESSAGE, macHost.host, user.username)
@@ -148,7 +152,7 @@ class SSHCommand {
             SSHUserConnectionConfiguration connectionConfig = new SSHUserConnectionConfiguration(username: user.username, password: user.password, host: host.host,
             port: host.port, connectionTimeout: host.connectionTimeout, readTimeout: host.readTimeout, kexTimeout: host.kexTimeout, macHostKeyVerifier: host.macHostKeyVerifier)
             String outputDir = String.format(Constants.KEYCHAIN_DESTINATION_FOLDER, user.username)
-            LOGGER.log(Level.FINE, SSHCommandLauncher.executeCommand(connectionConfig, true, String.format(Constants.CREATE_DIR, outputDir)))
+            LOGGER.log(Level.FINE, SSHCommandLauncher.executeCommand(connectionConfig, true, String.format(Constants.CREATE_DIR, outputDir), DEFAULT_COMMAND_TIMEOUT))
             SSHCommandLauncher.sendFile(connectionConfig, keychainFile.content, keychainFile.fileName, outputDir)
             return true
         } catch(Exception e) {
@@ -180,7 +184,7 @@ class SSHCommand {
      */
     @Restricted(NoExternalUse)
     private static boolean isUserExist(SSHConnectionConfiguration connectionConfig, String username) throws Exception {
-        String result = SSHCommandLauncher.executeCommand(connectionConfig, true, String.format(Constants.CHECK_USER_EXIST, username))
+        String result = SSHCommandLauncher.executeCommand(connectionConfig, true, String.format(Constants.CHECK_USER_EXIST, username), DEFAULT_COMMAND_TIMEOUT)
         return result.trim() == username
     }
 
@@ -196,7 +200,7 @@ class SSHCommand {
             SSHGlobalConnectionConfiguration connectionConfig = new SSHGlobalConnectionConfiguration(credentialsId: macHost.credentialsId, port: macHost.port,
             context: Jenkins.get(), host: macHost.host, connectionTimeout: macHost.connectionTimeout,
             readTimeout: macHost.readTimeout, kexTimeout: macHost.kexTimeout, macHostKeyVerifier: macHost.macHostKeyVerifier)
-            String result = SSHCommandLauncher.executeCommand(connectionConfig, true, String.format(Constants.LIST_USERS, Constants.USERNAME_PATTERN.substring(0, Constants.USERNAME_PATTERN.lastIndexOf("%"))))
+            String result = SSHCommandLauncher.executeCommand(connectionConfig, true, String.format(Constants.LIST_USERS, Constants.USERNAME_PATTERN.substring(0, Constants.USERNAME_PATTERN.lastIndexOf("%"))), DEFAULT_COMMAND_TIMEOUT)
             LOGGER.log(Level.FINE, result)
             if(StringUtils.isEmpty(result)) return new ArrayList()
             return result.split(Constants.REGEX_NEW_LINE) as List

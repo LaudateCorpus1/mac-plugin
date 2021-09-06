@@ -25,9 +25,9 @@ class SSHCommandTest extends Specification {
         MacHost macHost = Mock(MacHost)
         MacUser user = SSHCommand.generateUser()
         GroovySpy(SSHCommandLauncher, global:true)
-        1 * SSHCommandLauncher.executeCommand(_, true, String.format(Constants.CREATE_USER, user.username, user.password.getPlainText())) >> "OK"
-        1 * SSHCommandLauncher.executeCommand(_, true, String.format(Constants.CHECK_USER_EXIST, user.username)) >> user.username
-        1 * SSHCommandLauncher.executeCommand(_, true, String.format(Constants.CHANGE_RIGHTS_ON_USER, user.username)) >> "OK"
+        1 * SSHCommandLauncher.executeCommand(_, true, String.format(Constants.CREATE_USER, user.username, user.password.getPlainText()), 5000) >> "OK"
+        1 * SSHCommandLauncher.executeCommand(_, true, String.format(Constants.CHECK_USER_EXIST, user.username), 5000) >> user.username
+        1 * SSHCommandLauncher.executeCommand(_, true, String.format(Constants.CHANGE_RIGHTS_ON_USER, user.username), 5000) >> "OK"
 
         when:
         SSHCommand.createUserOnMac(macHost, user)
@@ -43,8 +43,8 @@ class SSHCommandTest extends Specification {
         MacUser user = SSHCommand.generateUser()
 
         GroovySpy(SSHCommandLauncher, global:true)
-        1 * SSHCommandLauncher.executeCommand(_, true, String.format(Constants.CREATE_USER, user.username, user.password)) >> "OK"
-        1 * SSHCommandLauncher.executeCommand(_, true, String.format(Constants.CHECK_USER_EXIST, user.username)) >> ""
+        1 * SSHCommandLauncher.executeCommand(_, true, String.format(Constants.CREATE_USER, user.username, user.password), 5000) >> "OK"
+        1 * SSHCommandLauncher.executeCommand(_, true, String.format(Constants.CHECK_USER_EXIST, user.username), 5000) >> ""
 
         when:
         SSHCommand.createUserOnMac(macHost, user)
@@ -59,7 +59,7 @@ class SSHCommandTest extends Specification {
         String username = "mac_user_test"
         MacHost macHost = Mock(MacHost)
         GroovySpy(SSHCommandLauncher, global:true)
-        2 * SSHCommandLauncher.executeCommand(_, true, _) >> "OK"
+        2 * SSHCommandLauncher.executeCommand(_, true, _, 5000) >> "OK"
 
         when:
         SSHCommand.deleteUserOnMac(username, macHost)
@@ -73,8 +73,8 @@ class SSHCommandTest extends Specification {
         String username = "mac_user_test"
         MacHost macHost = Mock(MacHost)
         GroovySpy(SSHCommandLauncher, global:true)
-        1 * SSHCommandLauncher.executeCommand(_, true, String.format(Constants.DELETE_USER, username)) >> "OK"
-        1 * SSHCommandLauncher.executeCommand(_, true, String.format(Constants.CHECK_USER_EXIST, username)) >> username
+        1 * SSHCommandLauncher.executeCommand(_, true, String.format(Constants.DELETE_USER, username), 5000) >> "OK"
+        1 * SSHCommandLauncher.executeCommand(_, true, String.format(Constants.CHECK_USER_EXIST, username), 5000) >> username
 
         when:
         SSHCommand.deleteUserOnMac(username, macHost)
@@ -92,7 +92,7 @@ class SSHCommandTest extends Specification {
         MacHost macHost = Mock(MacHost)
         String slaveSecret = "secret"
         GroovySpy(SSHCommandLauncher, global:true)
-        2 * SSHCommandLauncher.executeCommand(_, false, _) >> "OK"
+        2 * SSHCommandLauncher.executeCommand(_, false, _, 5000) >> "OK"
 
         when:
         SSHCommand.jnlpConnect(macHost, user, null, slaveSecret)
@@ -119,7 +119,7 @@ class SSHCommandTest extends Specification {
         setup:
         MacHost macHost = MacPojoBuilder.buildMacHost().get(0)
         GroovySpy(SSHCommandLauncher, global:true)
-        1 * SSHCommandLauncher.executeCommand(_, true, String.format(Constants.LIST_USERS, Constants.USERNAME_PATTERN.substring(0, Constants.USERNAME_PATTERN.lastIndexOf("%")))) >> ""
+        1 * SSHCommandLauncher.executeCommand(_, true, String.format(Constants.LIST_USERS, Constants.USERNAME_PATTERN.substring(0, Constants.USERNAME_PATTERN.lastIndexOf("%"))), 5000) >> ""
 
         when:
         List result = SSHCommand.listUsers(macHost)
@@ -133,7 +133,7 @@ class SSHCommandTest extends Specification {
         setup:
         MacHost macHost = MacPojoBuilder.buildMacHost().get(0)
         GroovySpy(SSHCommandLauncher, global:true)
-        1 * SSHCommandLauncher.executeCommand(_, true, String.format(Constants.LIST_USERS, Constants.USERNAME_PATTERN.substring(0, Constants.USERNAME_PATTERN.lastIndexOf("%")))) >> "user1\ruser2"
+        1 * SSHCommandLauncher.executeCommand(_, true, String.format(Constants.LIST_USERS, Constants.USERNAME_PATTERN.substring(0, Constants.USERNAME_PATTERN.lastIndexOf("%"))), 5000) >> "user1\ruser2"
 
         when:
         List result = SSHCommand.listUsers(macHost)
@@ -147,7 +147,7 @@ class SSHCommandTest extends Specification {
         setup:
         MacHost macHost = MacPojoBuilder.buildMacHost().get(0)
         GroovySpy(SSHCommandLauncher, global:true)
-        1 * SSHCommandLauncher.executeCommand(_, true, String.format(Constants.LIST_USERS, Constants.USERNAME_PATTERN.substring(0, Constants.USERNAME_PATTERN.lastIndexOf("%")))) >> { throw new Exception("Error") }
+        1 * SSHCommandLauncher.executeCommand(_, true, String.format(Constants.LIST_USERS, Constants.USERNAME_PATTERN.substring(0, Constants.USERNAME_PATTERN.lastIndexOf("%"))), 5000) >> { throw new Exception("Error") }
 
         when:
         List result = SSHCommand.listUsers(macHost)
@@ -160,7 +160,7 @@ class SSHCommandTest extends Specification {
         setup:
         SSHGlobalConnectionConfiguration connectionConfig = Mock(SSHGlobalConnectionConfiguration)
         GroovySpy(SSHCommandLauncher, global:true)
-        1* SSHCommandLauncher.executeCommand(connectionConfig, false,  Constants.WHOAMI) >> "ok"
+        1* SSHCommandLauncher.executeCommand(connectionConfig, false,  Constants.WHOAMI, 5000) >> "ok"
 
         when:
         SSHCommand.checkConnection(connectionConfig)
@@ -197,7 +197,7 @@ class SSHCommandTest extends Specification {
             getFileName() >> fileName
         }
         GroovySpy(SSHCommandLauncher, global:true)
-        1* SSHCommandLauncher.executeCommand(_, true, String.format(Constants.CREATE_DIR, fileDir)) >> "ok"
+        1* SSHCommandLauncher.executeCommand(_, true, String.format(Constants.CREATE_DIR, fileDir), 5000) >> "ok"
         1* SSHCommandLauncher.sendFile(_, content, fileName, fileDir) >> {}
 
         when:
@@ -219,7 +219,7 @@ class SSHCommandTest extends Specification {
             getFileName() >> fileName
         }
         GroovySpy(SSHCommandLauncher, global:true)
-        1* SSHCommandLauncher.executeCommand(_, true, String.format(Constants.CREATE_DIR, fileDir)) >> "ok"
+        1* SSHCommandLauncher.executeCommand(_, true, String.format(Constants.CREATE_DIR, fileDir), 5000) >> "ok"
         1* SSHCommandLauncher.sendFile(_, content, fileName, fileDir) >> new Exception("failed to send file")
 
         when:

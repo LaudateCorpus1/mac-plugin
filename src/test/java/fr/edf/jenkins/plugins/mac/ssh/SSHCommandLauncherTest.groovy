@@ -36,7 +36,7 @@ class SSHCommandLauncherTest extends Specification {
         1 * SSHConnectionFactory.getSshConnection(*_) >> conn
         SSHGlobalConnectionConfiguration connectionConfig = Mock(SSHGlobalConnectionConfiguration)
         when:
-        String result = SSHCommandLauncher.executeCommand(connectionConfig, false, command)
+        String result = SSHCommandLauncher.executeCommand(connectionConfig, false, command, 5000)
 
         then:
         notThrown Exception
@@ -64,7 +64,7 @@ class SSHCommandLauncherTest extends Specification {
         1 * SSHConnectionFactory.getSshConnection(*_) >> conn
         SSHGlobalConnectionConfiguration connectionConfig = Mock(SSHGlobalConnectionConfiguration)
         when:
-        String result = SSHCommandLauncher.executeCommand(connectionConfig, false, command)
+        String result = SSHCommandLauncher.executeCommand(connectionConfig, false, command, 5000)
 
         then:
         Exception e = thrown()
@@ -90,7 +90,7 @@ class SSHCommandLauncherTest extends Specification {
         1 * SSHConnectionFactory.getSshConnection(*_) >> conn
         SSHGlobalConnectionConfiguration connectionConfig = Mock(SSHGlobalConnectionConfiguration)
         when:
-        String result = SSHCommandLauncher.executeCommand(connectionConfig, true, command)
+        String result = SSHCommandLauncher.executeCommand(connectionConfig, true, command, 5000)
 
         then:
         notThrown Exception
@@ -144,8 +144,8 @@ class SSHCommandLauncherTest extends Specification {
         SSHCommandLauncher.executeMultipleCommands(connectionConfig, true, commands)
 
         then:
-        1 * SSHCommandLauncher.executeCommandWithConnection(conn, false, ls)
-        1 * SSHCommandLauncher.executeCommandWithConnection(conn, false, whoami)
+        1 * SSHCommandLauncher.executeCommandWithConnection(conn, false, ls, 5000)
+        1 * SSHCommandLauncher.executeCommandWithConnection(conn, false, whoami, 5000)
         notThrown Exception
     }
 
@@ -177,8 +177,8 @@ class SSHCommandLauncherTest extends Specification {
         SSHCommandLauncher.executeMultipleCommands(connectionConfig, false, commands)
 
         then:
-        1 * SSHCommandLauncher.executeCommandWithConnection(conn, false, ls)
-        0 * SSHCommandLauncher.executeCommandWithConnection(conn, false, whoami)
+        1 * SSHCommandLauncher.executeCommandWithConnection(conn, false, ls, 5000)
+        0 * SSHCommandLauncher.executeCommandWithConnection(conn, false, whoami, 5000)
         Exception e = thrown()
     }
     
@@ -210,8 +210,8 @@ class SSHCommandLauncherTest extends Specification {
         SSHCommandLauncher.executeMultipleCommands(connectionConfig, true, commands)
 
         then:
-        1 * SSHCommandLauncher.executeCommandWithConnection(conn, false, ls)
-        1 * SSHCommandLauncher.executeCommandWithConnection(conn, false, whoami)
+        1 * SSHCommandLauncher.executeCommandWithConnection(conn, false, ls, 5000)
+        1 * SSHCommandLauncher.executeCommandWithConnection(conn, false, whoami, 5000)
         notThrown Exception
     }
 }

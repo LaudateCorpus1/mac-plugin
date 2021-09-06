@@ -23,6 +23,8 @@ class MacPojoBuilder {
                 5, //connectionTimeout
                 5, //readTimeout
                 15, //agentConnectionTimeout
+                5, //createUserTimeout
+                5, //deleteUserTimeout
                 false, //disabled
                 5, //maxTries
                 "testLabel", //label
